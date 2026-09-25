@@ -100,7 +100,8 @@ const PLACES = {
   Speed: ["how-it-works", "speed", 2],
   Determinism: ["how-it-works", "determinism", 3],
   "While recording": ["how-it-works", "while-recording", 4],
-  Licence: ["about", "licence", 2],
+  Help: ["about", "help", 2],
+  Licence: ["about", "licence", 3],
 };
 
 function page(dir, slug, title, order, body, source, label) {
