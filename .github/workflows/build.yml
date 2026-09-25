@@ -1,0 +1,27 @@
+name: Build
+
+# What Cloudflare Pages will run, on every pull request and push: the docs
+# from the published package, then the site.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # Before versioncam's first release there is nothing to build the docs
+      # from, and that is not this repository's failure.
+      - id: published
+        run: |
+          if npm view versioncam version; then echo "yes=true" >> "$GITHUB_OUTPUT"
+          else echo "versioncam is not on npm yet; skipping the build"; fi
+      - if: steps.published.outputs.yes == 'true'
+        run: npm run build

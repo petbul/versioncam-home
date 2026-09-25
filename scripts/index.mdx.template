@@ -1,0 +1,49 @@
+---
+title: Demo clips, recorded by your CI
+description: {{tagline}}
+template: splash
+hero:
+  title: Versioncam
+  tagline: {{tagline}}
+  actions:
+    - text: Get started
+      link: /start/install/
+      icon: right-arrow
+    - text: Report a bug
+      link: https://github.com/versioncam/versioncam/issues
+      icon: external
+      variant: minimal
+---
+
+{{lede}}
+
+## Recorded by CI, on every push
+
+The example app's three clips, as its last push to `main` recorded them. When
+the app changes, these change with it; when a clip no longer matches the app,
+the push fails instead.
+
+<div class="clips">
+  <figure>
+    <video src="{{clips}}/01-create-a-shipment.mp4" poster="{{clips}}/01-create-a-shipment-poster.png" autoplay muted loop playsinline preload="metadata"></video>
+    <figcaption>Create a shipment</figcaption>
+  </figure>
+  <figure>
+    <video src="{{clips}}/02-find-a-shipment.mp4" poster="{{clips}}/02-find-a-shipment-poster.png" autoplay muted loop playsinline preload="metadata"></video>
+    <figcaption>Find a shipment</figcaption>
+  </figure>
+  <figure>
+    <video src="{{clips}}/03-cancel-a-shipment.mp4" poster="{{clips}}/03-cancel-a-shipment-poster.png" autoplay muted loop playsinline preload="metadata"></video>
+    <figcaption>Cancel a shipment</figcaption>
+  </figure>
+</div>
+
+## Install
+
+```bash
+{{install}}
+```
+
+Then say what the clip should show — `/versioncam "Show a user filtering the list down to one shipment"` — and the skill writes it, records it, has a reviewer look at the result, and fixes what the reviewer finds.
+
+<p class="colophon">versioncam {{version}} · the engine is published on npm under FSL-1.1-ALv2 and its source is closed · this site and its issues are public</p>

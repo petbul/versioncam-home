@@ -1,0 +1,25 @@
+{
+  "name": "versioncam-home",
+  "type": "module",
+  "scripts": {
+    "import-docs": "node scripts/import-docs.mjs",
+    "dev": "npm run import-docs && astro dev",
+    "build": "npm run import-docs && astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "^0.42.4",
+    "astro": "^7.2.10",
+    "sharp": "^0.35.3"
+  },
+  "allowScripts": {
+    "esbuild": true
+  },
+  "private": true,
+  "license": "MIT",
+  "description": "The home of Versioncam: its website, its docs (built from the npm package) and its issues.",
+  "engines": {
+    "node": ">=22"
+  }
+}
