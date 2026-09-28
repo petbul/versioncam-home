@@ -1,0 +1,18 @@
+// version.cam is a Cloudflare Worker with nothing but static assets: the
+// Astro build in dist/, served at the apex of the domain. No script runs.
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "versioncam-site",
+  "compatibility_date": "2026-09-28",
+  "assets": {
+    "directory": "./dist",
+    // Starlight builds a 404 page; a missing path gets it, with a 404.
+    "not_found_handling": "404-page"
+  },
+  "routes": [{ "pattern": "version.cam", "custom_domain": true }],
+  // The domain is the only address: no workers.dev copy of the site.
+  "workers_dev": false,
+  "preview_urls": false,
+  // No usage telemetry from deploys of this site.
+  "send_metrics": false
+}

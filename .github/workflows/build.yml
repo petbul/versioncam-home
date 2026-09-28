@@ -1,11 +1,19 @@
-name: Build
+name: Site
 
-# What Cloudflare Pages will run, on every pull request and push: the docs
-# from the published package, then the site.
+# Every pull request and push builds the site: the docs from versioncam as npm
+# publishes it, then Astro. A push to main also deploys it to version.cam, and
+# so does a daily run — the docs come from the latest release, so a release is
+# on the site by the next morning without anyone touching this repository.
 on:
   push:
     branches: [main]
   pull_request:
+  schedule:
+    - cron: "17 5 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   build:
@@ -17,11 +25,18 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      # Before versioncam's first release there is nothing to build the docs
-      # from, and that is not this repository's failure.
-      - id: published
+      - run: npm run build
+
+      # Deploys from main only, and only once the Cloudflare secrets are in
+      # this repository's settings; a pull request never sees them.
+      - name: Deploy to version.cam
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          if npm view versioncam version; then echo "yes=true" >> "$GITHUB_OUTPUT"
-          else echo "versioncam is not on npm yet; skipping the build"; fi
-      - if: steps.published.outputs.yes == 'true'
-        run: npm run build
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "No Cloudflare token in this repository yet; built, not deployed."
+            exit 0
+          fi
+          npx wrangler deploy

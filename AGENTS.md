@@ -9,6 +9,9 @@ nothing from it belongs here.
   reason: nothing in it is ever committed.
 - Never commit a token, a key, an account id, or a path under anyone's home
   directory.
-- `npm run build` must pass before a push; it is what Cloudflare Pages runs.
+- `npm run build` must pass before a push; the *Site* workflow runs it, then
+  deploys `dist/` to version.cam as a Cloudflare Worker (`wrangler.jsonc`).
+- Commits here are public: author and committer are petbul's GitHub noreply
+  address, never a personal one.
 - Astro's own guidance: https://docs.astro.build — `astro dev --background`
   runs the dev server in the background (`astro dev stop` to stop it).

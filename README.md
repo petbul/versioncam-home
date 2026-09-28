@@ -31,8 +31,10 @@ npm run dev
 release is out. `CLIPS_BASE=<url>` points the front page's clips somewhere
 other than `clips.version.cam`.
 
-Cloudflare Pages deploys every push to `main`, and rebuilds when a new
-version of versioncam is published.
+A Cloudflare Worker serves `dist/` at version.cam (`wrangler.jsonc`). The *Site*
+workflow deploys every push to `main`, and once a day, so a new release of
+versioncam is in the docs by the next morning; `npm run deploy` does the same
+from a machine logged in to the account.
 
 ## Licence
 
