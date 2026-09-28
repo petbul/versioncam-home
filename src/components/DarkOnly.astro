@@ -1,0 +1,11 @@
+---
+// Starlight's ThemeProvider, replaced: the brand is a viewfinder, black, so
+// the site has one theme and no switch. What Starlight's own scripts expect of
+// the provider — `window.StarlightThemeProvider.updatePickers` — stays, and
+// does nothing, since there are no pickers to update.
+---
+
+<script is:inline>
+	document.documentElement.dataset.theme = 'dark';
+	window.StarlightThemeProvider = { updatePickers() {} };
+</script>

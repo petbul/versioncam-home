@@ -1,29 +1,280 @@
-/* The front page's clips: three across when there is room, one when not. */
-.clips {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
-  gap: 1rem;
-  margin-block: 1.5rem;
+/*
+ * Versioncam's brand on Starlight.
+ *
+ * A viewfinder: black ground, white on-screen text. Two signal colours with
+ * one job each — red means recording, amber means a number you can trust
+ * (a version, a timecode) — and neither is ever decoration, which is why
+ * Starlight's own accent, aside and badge colours are all taken back to
+ * greys below. Departure Mono is the machine's voice (wordmark, headings, the
+ * on-screen display, commands); Inter is the person's (body copy). Departure
+ * Mono is drawn on an 11px grid, so it is set at 11, 22, 33 or 44px.
+ */
+
+@font-face {
+  font-family: "Departure Mono";
+  src: url("/fonts/DepartureMono-Regular.woff") format("woff");
+  font-display: swap;
 }
-.clips figure {
+@font-face {
+  font-family: "Inter";
+  src: url("/fonts/Inter-Regular.woff") format("woff");
+  font-weight: 400;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Inter";
+  src: url("/fonts/Inter-Medium.woff") format("woff");
+  font-weight: 500;
+  font-display: swap;
+}
+
+:root,
+:root[data-theme="dark"] {
+  --vc-black: #000000;
+  --vc-white: #ffffff;
+  --vc-rec: #ff2a1f;
+  --vc-amber: #ffb000;
+  --vc-dim: #8a8f98;
+  --vc-line: #2a2e35;
+  --vc-font-machine: "Departure Mono", ui-monospace, Menlo, monospace;
+  --vc-font-human: "Inter", system-ui, sans-serif;
+
+  --sl-font: var(--vc-font-human);
+  --sl-font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  --sl-color-white: var(--vc-white);
+  --sl-color-gray-1: #eceef1;
+  --sl-color-gray-2: #c9ccd1;
+  --sl-color-gray-3: var(--vc-dim);
+  --sl-color-gray-4: #545861;
+  --sl-color-gray-5: var(--vc-line);
+  --sl-color-gray-6: #0b0c0e;
+  --sl-color-black: var(--vc-black);
+
+  /* The accent is white: a link, the page you are on, a button. */
+  --sl-color-accent-low: #16181c;
+  --sl-color-accent: var(--vc-white);
+  --sl-color-accent-high: var(--vc-white);
+  --sl-color-text-invert: var(--vc-black);
+
+  --sl-color-bg: var(--vc-black);
+  --sl-color-bg-nav: var(--vc-black);
+  --sl-color-bg-sidebar: var(--vc-black);
+  --sl-color-bg-inline-code: #16181c;
+  --sl-color-hairline-light: var(--vc-line);
+  --sl-color-hairline: var(--vc-line);
+  --sl-color-hairline-shade: var(--vc-black);
+
+  /* Asides and badges would bring orange, red, green and blue; greys instead. */
+  --sl-color-orange-low: #16181c;
+  --sl-color-orange: var(--vc-dim);
+  --sl-color-orange-high: var(--vc-white);
+  --sl-color-red-low: #16181c;
+  --sl-color-red: var(--vc-dim);
+  --sl-color-red-high: var(--vc-white);
+  --sl-color-green-low: #16181c;
+  --sl-color-green: var(--vc-dim);
+  --sl-color-green-high: var(--vc-white);
+  --sl-color-blue-low: #16181c;
+  --sl-color-blue: var(--vc-dim);
+  --sl-color-blue-high: var(--vc-white);
+  --sl-color-purple-low: #16181c;
+  --sl-color-purple: var(--vc-dim);
+  --sl-color-purple-high: var(--vc-white);
+}
+
+/* Headings speak in the machine's voice, on its grid. */
+.sl-markdown-content :is(h1, h2),
+h1#_top {
+  font-family: var(--vc-font-machine);
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--vc-white);
+}
+h1#_top {
+  font-size: 33px;
+  line-height: 1.33;
+}
+.sl-markdown-content h2 {
+  font-size: 22px;
+  line-height: 1.5;
+}
+.sl-markdown-content h3 {
+  font-weight: 500;
+  color: var(--vc-white);
+}
+.sl-markdown-content a {
+  text-underline-offset: 0.2em;
+}
+
+/* The sidebar's group labels, as an on-screen display would set them. */
+.sidebar-content .group-label .large {
+  font-family: var(--vc-font-machine);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--vc-dim);
+}
+
+/* Buttons are square: pixels have no radius. */
+.sl-link-button {
+  border-radius: 0;
+  font-family: var(--vc-font-machine);
+  font-weight: 400;
+}
+
+/* ---- The front page ---------------------------------------------------- */
+
+/* One column, the lockup first and large, whatever the width. */
+.hero {
+  grid-template-columns: 100%;
+  gap: 2.75rem;
+  padding-block: 3rem 1.5rem;
+  text-align: start;
+}
+.hero > .hero-html {
+  order: -1;
+  width: 100%;
+  margin-inline: 0;
+  justify-content: flex-start;
+}
+.hero .vc-lockup {
+  display: block;
+  width: min(100%, 920px);
+  height: auto;
+}
+.hero .stack,
+.hero .copy {
+  align-items: flex-start;
+  text-align: start;
+}
+.hero h1#_top {
+  font-size: 44px;
+  line-height: 1.25;
+}
+.hero .tagline {
+  font-family: var(--vc-font-machine);
+  font-size: 22px;
+  line-height: 1.5;
+  color: var(--vc-dim);
+}
+.hero .actions {
+  justify-content: flex-start;
+}
+@media (max-width: 50rem) {
+  .hero h1#_top {
+    font-size: 33px;
+  }
+}
+@media (max-width: 30rem) {
+  .hero h1#_top {
+    font-size: 22px;
+  }
+  .hero .tagline {
+    font-size: 11px;
+    letter-spacing: 0.04em;
+  }
+}
+
+/* The clips: three across when there is room, one when not. */
+.vc-clips {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 1.5rem;
+  margin-block: 1.5rem 2rem;
+}
+.vc-tile {
   margin: 0;
 }
-.clips video {
+.vc-viewfinder {
+  position: relative;
+  border: 1px solid var(--vc-line);
+  background: var(--vc-black);
+}
+.vc-viewfinder video {
   display: block;
   width: 100%;
   /* The example app records at 1280×800. */
   aspect-ratio: 16 / 10;
-  border: 1px solid var(--sl-color-gray-5);
-  border-radius: 0.5rem;
-  background: var(--sl-color-gray-6);
+  background: #0b0c0e;
 }
-.clips figcaption {
-  margin-top: 0.4rem;
-  font-size: var(--sl-text-sm);
-  color: var(--sl-color-gray-3);
+/* The mark's corner brackets, framing the picture. */
+.vc-viewfinder::after {
+  content: "";
+  position: absolute;
+  inset: 8px;
+  pointer-events: none;
+  --c: rgb(255 255 255 / 0.85);
+  background:
+    linear-gradient(var(--c), var(--c)) top left / 14px 2px,
+    linear-gradient(var(--c), var(--c)) top left / 2px 14px,
+    linear-gradient(var(--c), var(--c)) top right / 14px 2px,
+    linear-gradient(var(--c), var(--c)) top right / 2px 14px,
+    linear-gradient(var(--c), var(--c)) bottom left / 14px 2px,
+    linear-gradient(var(--c), var(--c)) bottom left / 2px 14px,
+    linear-gradient(var(--c), var(--c)) bottom right / 14px 2px,
+    linear-gradient(var(--c), var(--c)) bottom right / 2px 14px;
+  background-repeat: no-repeat;
 }
+.vc-osd {
+  position: absolute;
+  font-family: var(--vc-font-machine);
+  font-size: 11px;
+  line-height: 11px;
+  letter-spacing: 0.04em;
+  padding: 3px 4px;
+  background: rgb(0 0 0 / 0.55);
+  pointer-events: none;
+}
+.vc-rec {
+  top: 16px;
+  left: 16px;
+  color: var(--vc-white);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.vc-rec i {
+  width: 8px;
+  height: 8px;
+  background: var(--vc-rec);
+  animation: vc-blink 1s steps(1) infinite;
+}
+.vc-ver {
+  top: 16px;
+  right: 16px;
+  color: var(--vc-amber);
+}
+.vc-tc {
+  bottom: 16px;
+  right: 16px;
+  color: var(--vc-amber);
+  font-variant-numeric: tabular-nums;
+}
+@keyframes vc-blink {
+  50% {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .vc-rec i {
+    animation: none;
+  }
+}
+.vc-tile figcaption {
+  margin-top: 0.6rem;
+  font-family: var(--vc-font-machine);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--vc-dim);
+}
+
 .colophon {
   margin-top: 3rem;
-  font-size: var(--sl-text-xs);
-  color: var(--sl-color-gray-3);
+  font-family: var(--vc-font-machine);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  color: var(--vc-dim);
 }

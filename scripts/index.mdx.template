@@ -1,10 +1,11 @@
 ---
-title: Demo clips, recorded by your CI
+title: Your app, recorded from main.
 description: {{tagline}}
 template: splash
 hero:
-  title: Versioncam
-  tagline: {{tagline}}
+  tagline: every version gets a demo that re-records itself
+  image:
+    html: '<img class="vc-lockup" src="/brand/lockup-dark-bg.svg" alt="Versioncam — version.cam" width="920" height="130" />'
   actions:
     - text: Get started
       link: /start/install/
@@ -15,6 +16,8 @@ hero:
       variant: minimal
 ---
 
+import Clips from "../../components/Clips.astro";
+
 {{lede}}
 
 ## Recorded by CI, on every push
@@ -23,20 +26,7 @@ The example app's three clips, as its last push to `main` recorded them. When
 the app changes, these change with it; when a clip no longer matches the app,
 the push fails instead.
 
-<div class="clips">
-  <figure>
-    <video src="{{clips}}/01-create-a-shipment.mp4" poster="{{clips}}/01-create-a-shipment-poster.png" autoplay muted loop playsinline preload="metadata"></video>
-    <figcaption>Create a shipment</figcaption>
-  </figure>
-  <figure>
-    <video src="{{clips}}/02-find-a-shipment.mp4" poster="{{clips}}/02-find-a-shipment-poster.png" autoplay muted loop playsinline preload="metadata"></video>
-    <figcaption>Find a shipment</figcaption>
-  </figure>
-  <figure>
-    <video src="{{clips}}/03-cancel-a-shipment.mp4" poster="{{clips}}/03-cancel-a-shipment-poster.png" autoplay muted loop playsinline preload="metadata"></video>
-    <figcaption>Cancel a shipment</figcaption>
-  </figure>
-</div>
+<Clips base="{{clips}}" version="{{version}}" />
 
 ## Install
 

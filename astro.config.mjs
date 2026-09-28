@@ -9,6 +9,31 @@ import { existsSync } from "node:fs";
 // appears when there are some.
 const more = existsSync(new URL("./src/content/docs/more", import.meta.url));
 
+// Code in the viewfinder's greys. Syntax colours would bring red and amber,
+// which the brand keeps for recording and for numbers you can trust.
+const viewfinder = {
+  name: "viewfinder",
+  type: "dark",
+  colors: {
+    "editor.background": "#0B0C0E",
+    "editor.foreground": "#E6E8EB",
+    "editor.selectionBackground": "#2A2E35",
+    "terminal.background": "#0B0C0E",
+    "terminal.foreground": "#E6E8EB",
+  },
+  tokenColors: [
+    { scope: ["comment", "punctuation.definition.comment"], settings: { foreground: "#8A8F98" } },
+    { scope: ["string", "constant", "markup.inline.raw"], settings: { foreground: "#C9CCD1" } },
+    {
+      scope: ["keyword", "storage", "entity.name", "support.function", "entity.name.function"],
+      settings: { foreground: "#FFFFFF" },
+    },
+    { scope: ["variable", "punctuation", "meta"], settings: { foreground: "#E6E8EB" } },
+  ],
+};
+
+const OG = "https://version.cam/og-image.png";
+
 export default defineConfig({
   site: "https://version.cam",
   integrations: [
@@ -16,7 +41,55 @@ export default defineConfig({
       title: "Versioncam",
       description:
         "Record demo clips of a real web app: scripted, deterministic, regenerated on deploy.",
+      logo: {
+        src: "./src/assets/lockup-dark-bg.svg",
+        alt: "Versioncam — version.cam",
+        replacesTitle: true,
+      },
       favicon: "/favicon.svg",
+      head: [
+        { tag: "link", attrs: { rel: "icon", href: "/favicon.ico", sizes: "32x32" } },
+        { tag: "link", attrs: { rel: "apple-touch-icon", href: "/apple-touch-icon.png" } },
+        { tag: "meta", attrs: { name: "theme-color", content: "#000000" } },
+        { tag: "meta", attrs: { property: "og:image", content: OG } },
+        { tag: "meta", attrs: { property: "og:image:width", content: "1200" } },
+        { tag: "meta", attrs: { property: "og:image:height", content: "630" } },
+        {
+          tag: "meta",
+          attrs: { property: "og:image:alt", content: "version.cam — Your app, recorded from main." },
+        },
+        { tag: "meta", attrs: { name: "twitter:card", content: "summary_large_image" } },
+        { tag: "meta", attrs: { name: "twitter:image", content: OG } },
+        // The two faces every page sets its headings and body in.
+        ...["DepartureMono-Regular", "Inter-Regular"].map((font) => ({
+          tag: "link",
+          attrs: {
+            rel: "preload",
+            href: `/fonts/${font}.woff`,
+            as: "font",
+            type: "font/woff",
+            crossorigin: "",
+          },
+        })),
+      ],
+      components: {
+        ThemeProvider: "./src/components/DarkOnly.astro",
+        ThemeSelect: "./src/components/NoThemeSelect.astro",
+      },
+      expressiveCode: {
+        themes: [viewfinder],
+        styleOverrides: {
+          borderColor: "#2A2E35",
+          borderRadius: "0",
+          codeFontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+          frames: {
+            editorActiveTabIndicatorTopColor: "#FFFFFF",
+            terminalTitlebarBackground: "#000000",
+            terminalTitlebarBorderBottomColor: "#2A2E35",
+            frameBoxShadowCssValue: "none",
+          },
+        },
+      },
       social: [
         {
           icon: "github",
