@@ -1,0 +1,96 @@
+---
+// The front page's first screen: what versioncam is, and the whole setup,
+// three commands and one sentence, where a developer can copy them. A page
+// without `install` in its frontmatter (the 404) keeps Starlight's hero.
+import Default from '@astrojs/starlight/components/Hero.astro';
+import { LinkButton } from '@astrojs/starlight/components';
+import { escape } from '../lib/take';
+
+const { data } = Astro.locals.starlightRoute.entry;
+const install = data.install;
+const ask = data.ask;
+const { title = data.title, tagline, actions = [] } = data.hero ?? {};
+
+// Built as strings: inside <pre>, a template's own indentation would print.
+const prompt = (sign: string) => `<span class="vc-prompt" aria-hidden="true">${sign} </span>`;
+const terminal = install?.map((line) => prompt('$') + escape(line)).join('\n') ?? '';
+const request = ask ? prompt('&gt;') + escape(ask) : '';
+---
+
+{
+	install ? (
+		<div class="vc-hero">
+			<div class="vc-hero-copy">
+				<h1 id="_top" data-page-title set:html={title} />
+				{tagline && <p class="vc-hero-tagline" set:html={tagline} />}
+				<div class="vc-hero-actions">
+					{actions.map(({ link, text, variant, icon }) => (
+						<LinkButton href={link} variant={variant} icon={icon?.name}>
+							{text}
+						</LinkButton>
+					))}
+				</div>
+			</div>
+
+			<div class="vc-install">
+				<div class="vc-install-block">
+					<div class="vc-install-head">
+						<span>Terminal</span>
+						<button
+							type="button"
+							class="vc-copy"
+							data-copy={install.join('\n')}
+							aria-label="Copy the three commands"
+						>
+							<svg class="vc-icon-copy" viewBox="0 0 16 16" aria-hidden="true">
+								<path d="M5.5 5.5h8v8h-8zM10.5 5.5v-3h-8v8h3" />
+							</svg>
+							<svg class="vc-icon-done" viewBox="0 0 16 16" aria-hidden="true">
+								<path d="M3 8.5l3.5 3.5L13 4.5" />
+							</svg>
+						</button>
+					</div>
+					<pre><code set:html={terminal} /></pre>
+				</div>
+				{ask && (
+					<div class="vc-install-block">
+						<div class="vc-install-head">
+							<span>Then, in Claude Code</span>
+							<button type="button" class="vc-copy" data-copy={ask} aria-label="Copy the request">
+								<svg class="vc-icon-copy" viewBox="0 0 16 16" aria-hidden="true">
+									<path d="M5.5 5.5h8v8h-8zM10.5 5.5v-3h-8v8h3" />
+								</svg>
+								<svg class="vc-icon-done" viewBox="0 0 16 16" aria-hidden="true">
+									<path d="M3 8.5l3.5 3.5L13 4.5" />
+								</svg>
+							</button>
+						</div>
+						<pre><code set:html={request} /></pre>
+					</div>
+				)}
+				<p class="vc-copied" role="status" aria-live="polite" />
+			</div>
+		</div>
+	) : (
+		<Default />
+	)
+}
+
+<script>
+	for (const button of document.querySelectorAll<HTMLButtonElement>('.vc-copy')) {
+		button.addEventListener('click', async () => {
+			const status = button.closest('.vc-install')?.querySelector('.vc-copied');
+			try {
+				await navigator.clipboard.writeText(button.dataset.copy ?? '');
+				button.dataset.done = '';
+				if (status) status.textContent = 'Copied.';
+				setTimeout(() => {
+					delete button.dataset.done;
+					if (status) status.textContent = '';
+				}, 1600);
+			} catch {
+				if (status) status.textContent = 'Copying is blocked here; select the text instead.';
+			}
+		});
+	}
+</script>

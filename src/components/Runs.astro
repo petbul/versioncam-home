@@ -1,0 +1,94 @@
+---
+// What CI sees: the check from the last push to `main`, as it printed, beside
+// the one failure this page keeps.
+//
+// The live panel is `check.txt`, which CI publishes with the take. It is only
+// ever a passing run's: the job fails at the check before anything is
+// published, so "exit 0" is a fact about every take here, not a claim.
+//
+// The failure was run once, by hand, for this page: the example app with one
+// button's test id renamed, `create-shipment` to `submit-shipment`, and
+// nothing else changed. Its output and the picture the recorder kept are
+// here as they were, and labelled as a capture rather than as live.
+import { formatCheck, loadCheck, loadManifest, type Manifest } from '../lib/take';
+
+interface Props {
+	/** Where CI publishes the example's takes, without a trailing slash. */
+	base: string;
+}
+const { base } = Astro.props;
+
+let manifest: Manifest | null = null;
+let check: string | null = null;
+try {
+	manifest = await loadManifest(base);
+	check = await loadCheck(base, manifest);
+} catch (error) {
+	console.warn(`runs: ${(error as Error).message}; the browser will load it`);
+}
+
+const FAILURE = `app: started with "npm run dev", HTTP 200 after 0.4 s; it stops when this command does
+FAIL  01-create-a-shipment
+PASS  02-find-a-shipment
+PASS  03-cancel-a-shipment
+
+2/3 clips still match the app.
+
+01-create-a-shipment
+  Nothing matched getByTestId('create-shipment') within 15000ms at t=3.71s (frame 222). The clip expected it to be on screen by this point.`;
+---
+
+<div class="vc-runs not-content">
+	<figure class="vc-run" data-run data-base={base} data-commit={manifest?.commit ?? ''}>
+		<figcaption class="vc-run-head">
+			<span class="vc-run-mode is-live">Live</span>
+			<span class="vc-id" data-run-commit>{manifest?.commit ? `main@${manifest.commit}` : 'main'}</span>
+			<span class="vc-run-exit">exit <span class="vc-num">0</span></span>
+		</figcaption>
+		<pre class="vc-run-out"><code><span class="vc-prompt">$ </span>npx versioncam check
+<span data-run-text set:html={check ? formatCheck(check) : 'Waiting for the take…'} /></code></pre>
+	</figure>
+
+	<figure class="vc-run is-failure">
+		<figcaption class="vc-run-head">
+			<span class="vc-run-mode">Captured once</span>
+			<span><span class="vc-id">create-shipment</span> renamed</span>
+			<span class="vc-run-exit">exit <span class="vc-num">1</span></span>
+		</figcaption>
+		<pre class="vc-run-out"><code><span class="vc-prompt">$ </span>npx versioncam check
+<Fragment set:html={formatCheck(FAILURE)} /></code></pre>
+		<div class="vc-viewfinder vc-run-still">
+			<img
+				src="/take/failure-01-create-a-shipment.png"
+				width="1280"
+				height="800"
+				loading="lazy"
+				decoding="async"
+				alt="The example app at the moment the clip gave up: the form is filled in, and the Create shipment button is on screen under its new test id."
+			/>
+			<span class="vc-osd vc-stop" aria-hidden="true">STOP</span>
+			<span class="vc-osd vc-tc" aria-hidden="true">00:00:03:42</span>
+			<span class="vc-osd vc-file" aria-hidden="true">failure.png</span>
+		</div>
+	</figure>
+</div>
+
+<script>
+	import { formatCheck, latestManifest, loadCheck } from '../lib/take';
+
+	// A take newer than the build brings its own check.
+	const run = document.querySelector<HTMLElement>('[data-run]');
+	if (run) {
+		const base = run.dataset.base!;
+		latestManifest(base)
+			.then(async (manifest) => {
+				if (manifest.commit === (run.dataset.commit || null)) return;
+				const check = await loadCheck(base, manifest);
+				if (!check) return;
+				run.querySelector('[data-run-text]')!.innerHTML = formatCheck(check);
+				run.querySelector('[data-run-commit]')!.textContent = `main@${manifest.commit}`;
+				run.dataset.commit = manifest.commit ?? '';
+			})
+			.catch(() => {});
+	}
+</script>

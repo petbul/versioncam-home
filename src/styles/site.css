@@ -298,69 +298,638 @@ h1#_top {
   font-weight: 400;
 }
 
-/* ---- The front page ---------------------------------------------------- */
+/* ---- The front page ------------------------------------------------------
+   Wide enough for a script beside its video. Prose keeps its measure; the
+   take, the runs and the facts take the width. */
 
-/* One column, the lockup first and large, whatever the width. */
-.hero {
-  grid-template-columns: 100%;
-  gap: 2.75rem;
-  padding-block: 3rem 1.5rem;
-  text-align: start;
+:root[data-has-hero] {
+  --sl-content-width: 76rem;
 }
-.hero > .hero-html {
-  order: -1;
-  width: 100%;
-  margin-inline: 0;
-  justify-content: flex-start;
+:root[data-has-hero] .sl-markdown-content > p {
+  max-inline-size: 62ch;
 }
-.hero .vc-lockup {
-  display: block;
-  width: min(100%, 920px);
-  height: auto;
+/* A step below the title at every width: 22 under it on a phone, 33 beside
+   its 44 and 55 on wider screens. */
+@media (min-width: 40rem) {
+  :root[data-has-hero] .sl-markdown-content h2,
+  :root[data-has-hero] .sl-markdown-content .sl-heading-wrapper.level-h2 {
+    font-size: 33px;
+    line-height: 44px;
+  }
 }
-.hero .stack,
-.hero .copy {
-  align-items: flex-start;
-  text-align: start;
+:root[data-has-hero] .sl-markdown-content .sl-heading-wrapper.level-h2 {
+  margin-top: 4.5rem;
 }
-.hero h1#_top {
-  font-size: 44px;
-  line-height: 1.25;
+
+/* The first screen: what it is on the left, the whole setup on the right. */
+.vc-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2.25rem;
+  padding-block: 2.5rem 2.25rem;
 }
-.hero .tagline {
+@media (min-width: 64rem) {
+  .vc-hero {
+    grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+    align-items: end;
+    gap: 3.5rem;
+    padding-block: 4rem 2.75rem;
+  }
+}
+.vc-hero h1#_top {
+  font-size: 33px;
+  line-height: 44px;
+}
+@media (min-width: 40rem) {
+  .vc-hero h1#_top {
+    font-size: 44px;
+    line-height: 55px;
+  }
+}
+@media (min-width: 80rem) {
+  .vc-hero h1#_top {
+    font-size: 55px;
+    line-height: 66px;
+  }
+}
+.vc-hero-tagline {
+  margin: 1.25rem 0 0;
+  max-width: 36rem;
+  font-size: 1.125rem;
+  line-height: 1.6;
+  color: var(--sl-color-gray-2);
+  text-wrap: pretty;
+}
+.vc-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.5rem;
+  margin-top: 2rem;
+}
+.vc-hero-actions .sl-link-button {
+  font-size: 11px;
+  line-height: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.vc-hero-actions .sl-link-button.primary {
+  padding: 1rem 1.25rem;
+}
+
+.vc-install {
+  display: grid;
+  gap: 0.75rem;
+}
+.vc-install-block {
+  border: 1px solid var(--vc-line);
+  background: var(--sl-color-gray-6);
+}
+.vc-install-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 2.5rem;
+  padding: 0.25rem 0.25rem 0.25rem 0.875rem;
+  border-bottom: 1px solid var(--vc-line);
   font-family: var(--vc-font-machine);
-  font-size: 22px;
-  line-height: 1.5;
+  font-size: 11px;
+  line-height: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--vc-dim);
 }
-.hero .actions {
-  justify-content: flex-start;
+.vc-install pre {
+  margin: 0;
+  padding: 0.875rem;
+  font-family: var(--sl-font-mono);
+  font-size: 0.875rem;
+  line-height: 1.7;
+  color: #e6e8eb;
+  white-space: pre-wrap;
+  background: none;
+  border: 0;
 }
-@media (max-width: 50rem) {
-  .hero h1#_top {
-    font-size: 33px;
-  }
+.vc-prompt {
+  color: var(--vc-dim);
+  user-select: none;
 }
-@media (max-width: 30rem) {
-  .hero h1#_top {
-    font-size: 22px;
-  }
-  .hero .tagline {
-    font-size: 11px;
-    letter-spacing: 0.04em;
-  }
+.vc-copy {
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  color: var(--vc-dim);
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+.vc-copy:hover {
+  color: var(--vc-white);
+}
+.vc-copy svg {
+  grid-area: 1 / 1;
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: square;
+}
+.vc-copy .vc-icon-done,
+.vc-copy[data-done] .vc-icon-copy {
+  visibility: hidden;
+}
+.vc-copy[data-done] .vc-icon-done {
+  visibility: visible;
+  color: var(--vc-white);
+}
+.vc-copied {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
-/* The clips: three across when there is room, one when not. */
-.vc-clips {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
-  gap: 1.5rem;
-  margin-block: 1.5rem 2rem;
+/* The take: file tabs, the script beside the viewfinder, a transport bar. */
+.vc-take {
+  border: 1px solid var(--vc-line);
+  background: var(--vc-black);
 }
-.vc-tile {
+.vc-take-tabs {
+  display: flex;
+  overflow-x: auto;
+  scrollbar-width: none;
+  border-bottom: 1px solid var(--vc-line);
+}
+.vc-take-tab {
+  flex: none;
+  padding: 0.8125rem 1rem;
+  font-family: var(--vc-font-machine);
+  font-size: 11px;
+  line-height: 11px;
+  letter-spacing: 0.04em;
+  color: var(--vc-dim);
+  background: none;
+  border: 0;
+  border-right: 1px solid var(--vc-line);
+  box-shadow: inset 0 2px 0 transparent;
+  cursor: pointer;
+}
+.vc-take-tab:hover {
+  color: var(--vc-white);
+}
+.vc-take-tab[aria-selected="true"] {
+  color: var(--vc-white);
+  background: var(--sl-color-gray-6);
+  box-shadow: inset 0 2px 0 var(--vc-white);
+}
+.vc-take-tab:focus-visible {
+  outline-offset: -2px;
+}
+
+.vc-take-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+.vc-take-view {
+  order: -1;
+  margin: 0;
+  border: 0;
+}
+.vc-code-cell {
+  position: relative;
+  border-top: 1px solid var(--vc-line);
+  background: var(--sl-color-gray-6);
+}
+.vc-code {
+  position: relative;
+  max-height: 18rem;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+@media (min-width: 64rem) {
+  .vc-take-body {
+    grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  }
+  .vc-take-view {
+    order: 0;
+    border-left: 1px solid var(--vc-line);
+  }
+  .vc-code-cell {
+    border-top: 0;
+  }
+  /* Out of the flow, so the video's height sets the row and the script
+     scrolls inside it. */
+  .vc-code {
+    position: absolute;
+    inset: 0;
+    max-height: none;
+  }
+}
+.vc-lines {
+  margin: 0;
+  padding: 0.75rem 0;
+  list-style: none;
+  font-family: var(--sl-font-mono);
+  font-size: 0.8125rem;
+  line-height: 1.25rem;
+}
+.vc-lines li {
+  display: grid;
+  grid-template-columns: 2.75rem minmax(0, 1fr);
+  column-gap: 0.875rem;
+  min-height: 1.25rem;
   margin: 0;
 }
+.vc-ln {
+  padding-inline: 0.375rem;
+  text-align: right;
+  /* A step under the comments, and still 4.7:1 on the panel. */
+  color: #7a7f89;
+  font-variant-numeric: tabular-nums;
+  user-select: none;
+}
+/* Long lines wrap rather than hide: the lit line must be read whole. */
+.vc-src {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0 1rem 0 0;
+  font: inherit;
+  text-align: start;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: #e6e8eb;
+  background: none;
+  border: 0;
+  border-radius: 0;
+}
+button.vc-src {
+  cursor: pointer;
+}
+button.vc-src:focus-visible {
+  outline-offset: -2px;
+}
+.vc-lines li.is-step:hover {
+  background: #101215;
+}
+/* The playhead: the running line's number in reverse video. */
+.vc-lines li.is-lit {
+  background: #16191e;
+}
+.vc-lines li.is-lit .vc-ln {
+  color: var(--vc-black);
+  background: var(--vc-white);
+}
+.vc-lines .t-c {
+  color: var(--vc-dim);
+}
+.vc-lines .t-s,
+.vc-lines .t-n {
+  color: var(--sl-color-gray-2);
+}
+.vc-lines .t-k,
+.vc-lines .t-f {
+  color: var(--vc-white);
+}
+
+.vc-take-view video {
+  cursor: pointer;
+}
+.vc-commit {
+  bottom: 16px;
+  left: 16px;
+  color: var(--vc-white);
+}
+.vc-take:not([data-playing]) .vc-rec i {
+  animation: none;
+}
+.vc-standby {
+  display: none;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 22px;
+  line-height: 22px;
+  color: var(--vc-white);
+}
+.vc-take:is([data-state="standby"], [data-state="nosignal"]) .vc-standby {
+  display: block;
+}
+
+.vc-take-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  border-top: 1px solid var(--vc-line);
+}
+.vc-icon-button {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  color: var(--vc-white);
+  background: none;
+  border: 1px solid var(--vc-line);
+  border-radius: 0;
+  cursor: pointer;
+}
+.vc-icon-button:hover {
+  border-color: var(--vc-white);
+}
+.vc-icon-button svg {
+  grid-area: 1 / 1;
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: square;
+  stroke-linejoin: miter;
+}
+.vc-icon-pause,
+.vc-take[data-playing] .vc-icon-play {
+  visibility: hidden;
+}
+.vc-take[data-playing] .vc-icon-pause {
+  visibility: visible;
+}
+
+/* The scrubber: a hairline that fills as the take plays, with a tick at
+   every frame a step of the script began on. */
+.vc-scrub {
+  position: relative;
+  flex: 1;
+  height: 2rem;
+}
+.vc-scrub-track {
+  position: absolute;
+  inset-inline: 0;
+  top: calc(50% - 1px);
+  height: 2px;
+  background:
+    linear-gradient(var(--vc-white), var(--vc-white)) left / var(--vc-played, 0%) 100%
+      no-repeat,
+    var(--vc-line);
+}
+.vc-scrub-track i {
+  position: absolute;
+  top: -5px;
+  width: 1px;
+  height: 12px;
+  background: var(--vc-dim);
+}
+.vc-scrub input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+.vc-scrub input::-webkit-slider-runnable-track {
+  height: 2rem;
+  background: transparent;
+}
+.vc-scrub input::-webkit-slider-thumb {
+  appearance: none;
+  width: 3px;
+  height: 18px;
+  margin-top: calc(1rem - 9px);
+  background: var(--vc-white);
+  border: 0;
+}
+.vc-scrub input::-moz-range-track {
+  background: transparent;
+}
+.vc-scrub input::-moz-range-thumb {
+  width: 3px;
+  height: 18px;
+  background: var(--vc-white);
+  border: 0;
+  border-radius: 0;
+}
+.vc-frame-count {
+  flex: none;
+  font-family: var(--vc-font-machine);
+  font-size: 11px;
+  line-height: 11px;
+  letter-spacing: 0.04em;
+  color: var(--vc-dim);
+  font-variant-numeric: tabular-nums;
+}
+.vc-num {
+  color: var(--vc-amber);
+}
+
+.vc-take-foot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.75rem 2rem;
+  margin-top: 1rem;
+}
+.vc-take-hint {
+  margin: 0;
+  max-width: 48ch;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--vc-dim);
+}
+.vc-take-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.5rem;
+  margin: 0;
+  font-family: var(--vc-font-machine);
+  font-size: 11px;
+  line-height: 22px;
+  letter-spacing: 0.04em;
+}
+.vc-take-meta div {
+  display: flex;
+  gap: 0.625rem;
+}
+.vc-take-meta dt {
+  color: var(--vc-dim);
+  text-transform: uppercase;
+}
+.vc-take-meta dd {
+  margin: 0;
+}
+
+/* What CI sees: the live check beside the one failure kept. */
+.vc-runs {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.5rem;
+  margin-block: 1.75rem;
+}
+@media (min-width: 64rem) {
+  .vc-runs {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+}
+.vc-run {
+  margin: 0;
+  border: 1px solid var(--vc-line);
+  background: var(--sl-color-gray-6);
+}
+.vc-run-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  padding: 0.75rem 0.875rem;
+  border-bottom: 1px solid var(--vc-line);
+  font-family: var(--vc-font-machine);
+  font-size: 11px;
+  line-height: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--vc-dim);
+}
+.vc-run-mode {
+  color: var(--vc-white);
+}
+.vc-run-mode.is-live::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-inline-end: 0.5rem;
+  vertical-align: 1px;
+  background: var(--vc-white);
+}
+.vc-run-exit {
+  margin-inline-start: auto;
+}
+/* A commit and a test id are names, and keep their case. */
+.vc-id {
+  text-transform: none;
+  letter-spacing: 0.04em;
+  color: var(--vc-white);
+}
+.vc-run-out {
+  margin: 0;
+  padding: 0.875rem;
+  font-family: var(--sl-font-mono);
+  font-size: 0.8125rem;
+  line-height: 1.65;
+  color: var(--sl-color-gray-2);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  background: none;
+  border: 0;
+}
+.vc-verdict {
+  color: var(--vc-white);
+}
+.vc-verdict.is-fail {
+  padding-inline: 0.2em;
+  margin-inline: -0.2em;
+  color: var(--vc-black);
+  background: var(--vc-white);
+}
+.vc-run-still {
+  margin: 0 0.875rem 0.875rem;
+}
+.vc-run-still img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.vc-stop {
+  top: 16px;
+  left: 16px;
+  color: var(--vc-white);
+}
+.vc-file {
+  bottom: 16px;
+  left: 16px;
+  color: var(--vc-white);
+  text-transform: none;
+}
+
+/* Four facts, set like a spec plate: the term in the machine's voice. */
+.sl-markdown-content > dl.vc-facts {
+  max-inline-size: none;
+}
+.vc-facts {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  column-gap: 3rem;
+  margin: 1.75rem 0 0;
+  border-top: 1px solid var(--vc-line);
+}
+@media (min-width: 50rem) {
+  .vc-facts {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+.vc-facts > div {
+  padding-block: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--vc-line);
+}
+.vc-facts dt {
+  font-family: var(--vc-font-machine);
+  font-size: 11px;
+  line-height: 22px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--vc-white);
+}
+.vc-facts dd {
+  margin: 0.5rem 0 0;
+  max-width: 48ch;
+  line-height: 1.65;
+  color: var(--sl-color-gray-2);
+}
+.vc-facts a {
+  color: var(--vc-white);
+  text-underline-offset: 0.2em;
+  text-decoration-thickness: 1px;
+}
+.vc-facts code {
+  font-family: var(--sl-font-mono);
+  font-size: 0.875em;
+  padding: 0.1em 0.35em;
+  color: var(--vc-white);
+  background: var(--sl-color-bg-inline-code);
+  white-space: nowrap;
+}
+
+/* Two sentences are for reading, so the person's face, a step down; only the
+   version keeps the machine's, in amber because it is read from the package. */
+.sl-markdown-content > p.colophon {
+  max-inline-size: 62ch;
+  margin-top: 3.5rem;
+  font-size: 0.875rem;
+  line-height: 1.6;
+  color: var(--vc-dim);
+}
+.colophon .vc-num {
+  font-family: var(--vc-font-machine);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+.colophon a {
+  color: var(--vc-white);
+}
+
+/* The viewfinder: a picture framed by the mark's corner brackets, with an
+   on-screen display over it. */
 .vc-viewfinder {
   position: relative;
   border: 1px solid var(--vc-line);
@@ -369,7 +938,7 @@ h1#_top {
 .vc-viewfinder video {
   display: block;
   width: 100%;
-  /* The example app records at 1280×800. */
+  /* The example app records at 1280×800, 16:10. */
   aspect-ratio: 16 / 10;
   background: #0b0c0e;
 }
@@ -436,21 +1005,51 @@ h1#_top {
     animation: none;
   }
 }
-.vc-tile figcaption {
-  margin-top: 0.6rem;
+
+/* Starlight's own hero, which the 404 keeps: one column, the picture first. */
+.hero {
+  grid-template-columns: 100%;
+  gap: 2.75rem;
+  padding-block: 3rem 1.5rem;
+  text-align: start;
+}
+.hero > .hero-html {
+  order: -1;
+  width: 100%;
+  margin-inline: 0;
+  justify-content: flex-start;
+}
+.hero .stack,
+.hero .copy {
+  align-items: flex-start;
+  text-align: start;
+}
+.hero h1#_top {
+  font-size: 44px;
+  line-height: 1.25;
+}
+.hero .tagline {
   font-family: var(--vc-font-machine);
-  font-size: 11px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 22px;
+  line-height: 1.5;
   color: var(--vc-dim);
 }
-
-.colophon {
-  margin-top: 3rem;
-  font-family: var(--vc-font-machine);
-  font-size: 11px;
-  letter-spacing: 0.04em;
-  color: var(--vc-dim);
+.hero .actions {
+  justify-content: flex-start;
+}
+@media (max-width: 50rem) {
+  .hero h1#_top {
+    font-size: 33px;
+  }
+}
+@media (max-width: 30rem) {
+  .hero h1#_top {
+    font-size: 22px;
+  }
+  .hero .tagline {
+    font-size: 11px;
+    letter-spacing: 0.04em;
+  }
 }
 
 .vc-stamp code {

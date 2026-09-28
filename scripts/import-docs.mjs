@@ -286,25 +286,29 @@ writeFileSync(
   ].join("\n"),
 );
 
-// The front page: the README's own lede and install commands, and the example
-// app's clips as this repository's CI last rendered them.
-const [tagline, ...rest] = lede.lines
+// The front page: the README's first line as its description, and its setup
+// as the README gives it: the shell commands without their comments, and the
+// sentence to say to Claude Code after. The example app's takes come from
+// where CI publishes them, read by the page's own components.
+const [tagline] = lede.lines
   .filter((line) => !line.startsWith("# "))
   .join("\n")
   .trim()
   .split(/\n\s*\n/);
-const install = parts.find((p) => p.title === "Install");
-const commands =
-  install?.lines.join("\n").match(/```bash\n([\s\S]*?)```/)?.[1]?.trim() ??
-  "npm i -D versioncam";
+const install = parts.find((p) => p.title === "Install")?.lines.join("\n") ?? "";
+const commands = (install.match(/```bash\n([\s\S]*?)```/)?.[1] ?? "npm i -D versioncam")
+  .split("\n")
+  .map((line) => line.replace(/\s+#.*$/, "").trim())
+  .filter(Boolean);
+const ask = install.match(/```\n(\/versioncam [^\n]*)\n```/)?.[1] ?? null;
 const template = readFileSync(join(ROOT, "scripts", "index.mdx.template"), "utf8");
 writeFileSync(
   join(DOCS, "index.mdx"),
   template
     .replaceAll("{{version}}", version)
     .replaceAll("{{tagline}}", JSON.stringify(tagline.replace(/\s+/g, " ").trim()))
-    .replaceAll("{{lede}}", rest.join("\n\n"))
-    .replaceAll("{{install}}", commands)
+    .replaceAll("{{install}}", JSON.stringify(commands))
+    .replaceAll("{{ask}}", JSON.stringify(ask))
     .replaceAll("{{clips}}", process.env.CLIPS_BASE ?? "https://clips.version.cam/example"),
 );
 

@@ -2,38 +2,51 @@
 title: Your app, recorded from main.
 description: {{tagline}}
 template: splash
+install: {{install}}
+ask: {{ask}}
 hero:
-  tagline: every version gets a demo that re-records itself
-  image:
-    html: '<img class="vc-lockup" src="/brand/lockup-dark-bg.svg" alt="Versioncam — version.cam" width="920" height="130" />'
+  tagline: Product demos written as scripts and re-recorded by CI on every push. When your app changes under a clip, the build fails instead of the demo going quietly wrong.
   actions:
     - text: Get started
       link: /start/install/
       icon: right-arrow
-    - text: Report a bug
-      link: https://github.com/petbul/versioncam-home/issues
-      icon: external
+    - text: Read the DSL
+      link: /reference/dsl/
       variant: minimal
 ---
 
-import Clips from "../../components/Clips.astro";
+import Take from "../../components/Take.astro";
+import Runs from "../../components/Runs.astro";
 
-{{lede}}
+<Take base="{{clips}}" />
 
-## Recorded by CI, on every push
+## When the app changes, the build fails
 
-The example app's three clips, as its last push to `main` recorded them. When
-the app changes, these change with it; when a clip no longer matches the app,
-the push fails instead.
+Every push to `main` runs `npx versioncam check` against the example app. Here is what the last run printed, and the same check run once for this page, after renaming one button's test id in the app.
 
-<Clips base="{{clips}}" version="{{version}}" />
+<Runs base="{{clips}}" />
 
-## Install
+The broken clip names what it looked for, the second it gave up and the frame, and keeps a picture of the page at that moment. It renders nothing: a video of the wreckage would help nobody.
 
-```bash
-{{install}}
-```
+## What makes a take repeat
 
-Then say what the clip should show — `/versioncam "Show a user filtering the list down to one shipment"` — and the skill writes it, records it, has a reviewer look at the result, and fixes what the reviewer finds.
+<dl class="vc-facts not-content">
+  <div>
+    <dt>Authored time</dt>
+    <dd>The page's clock moves one frame at a time, and only when the recorder moves it. A slow query or a spinner is waited for off camera and never reaches the video. <a href="/how-it-works/overview/">How it works</a></dd>
+  </div>
+  <div>
+    <dt>Real input</dt>
+    <dd>A real mouse follows a planned, seeded path, so hover and press states fire as they would for a person. The cursor you see is drawn afterwards, at output resolution. <a href="/reference/dsl/">The clip DSL</a></dd>
+  </div>
+  <div>
+    <dt>Same bytes</dt>
+    <dd>Two recordings of a clip on one machine are the same file. <code>versioncam stability</code> proves your app does its part before a clip is written for it. <a href="/how-it-works/determinism/">Determinism</a></dd>
+  </div>
+  <div>
+    <dt>One sentence</dt>
+    <dd>In Claude Code, <code>/versioncam "…"</code> writes the clip, records it, and has a fresh reviewer judge the frames. There is no API key: the model is the session you already have. <a href="/start/authoring/">Authoring</a></dd>
+  </div>
+</dl>
 
-<p class="colophon">versioncam {{version}} · the engine is published on npm under FSL-1.1-ALv2 and its source is closed · this site and its issues are public</p>
+<p class="colophon">versioncam <span class="vc-num">{{version}}</span> on npm · <a href="/about/licence/">FSL-1.1-ALv2</a> · The engine's source is closed. This site and <a href="https://github.com/petbul/versioncam-home/issues">its issue tracker</a> are public.</p>

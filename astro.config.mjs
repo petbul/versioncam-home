@@ -40,7 +40,7 @@ export default defineConfig({
     starlight({
       title: "Versioncam",
       description:
-        "Record demo clips of a real web app: scripted, deterministic, regenerated on deploy.",
+        "Record demo clips of a real web app: scripted, deterministic, re-recorded on every push.",
       logo: {
         src: "./src/assets/lockup-dark-bg.svg",
         alt: "Versioncam",
@@ -73,6 +73,7 @@ export default defineConfig({
         })),
       ],
       components: {
+        Hero: "./src/components/Hero.astro",
         ThemeProvider: "./src/components/DarkOnly.astro",
         ThemeSelect: "./src/components/NoThemeSelect.astro",
       },

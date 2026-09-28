@@ -1,0 +1,459 @@
+---
+// The example app's last take on `main`: each clip's script beside the video
+// CI recorded from it, with the line that is running lit.
+//
+// The lit line is the recording's own: CI publishes each timeline beside its
+// video, and a timeline lists the script's steps with the frame each began
+// on. The version in amber and the commit are read from the recording too,
+// so nothing in the viewfinder is a guess.
+import {
+	highlight,
+	lineFrames,
+	loadManifest,
+	loadTake,
+	running,
+	timecode,
+	versionQuery,
+	type Take,
+} from '../lib/take';
+
+interface Props {
+	/** Where CI publishes the example's takes, without a trailing slash. */
+	base: string;
+}
+const { base } = Astro.props;
+
+// The take as it stood when the site was built. The browser asks for the
+// manifest again before it loads a video, and swaps in a newer take if CI has
+// published one since.
+let take: Take | null = null;
+try {
+	take = await loadTake(base, await loadManifest(base));
+} catch (error) {
+	console.warn(`take: ${(error as Error).message}; the browser will load it`);
+}
+const clip = take?.clips[0] ?? null;
+const v = take ? versionQuery(take) : '';
+const lines = clip?.source ? highlight(clip.source) : [];
+const lit = new Set(clip ? running(clip.steps, 0) : []);
+const starts = clip ? lineFrames(clip.steps) : new Map<number, number>();
+const firstStep = Math.min(...starts.keys());
+const ticks = clip ? [...new Set(clip.steps.map((step) => step.frame))] : [];
+const at = (frame: number) => (clip ? (frame / Math.max(1, clip.frames - 1)) * 100 : 0);
+const data = JSON.stringify(take).replace(/</g, '\\u003c');
+---
+
+<section class="vc-take not-content" data-take data-base={base} data-state={take ? 'ready' : 'standby'}>
+	<div class="vc-take-tabs" role="tablist" aria-label="The example app's clips" data-tabs>
+		{
+			take?.clips.map((each, i) => (
+				<button
+					type="button"
+					role="tab"
+					class="vc-take-tab"
+					id={`vc-tab-${each.id}`}
+					aria-selected={i === 0 ? 'true' : 'false'}
+					aria-controls="vc-take-panel"
+					tabindex={i === 0 ? 0 : -1}
+				>
+					{each.id}.clip.ts
+				</button>
+			))
+		}
+	</div>
+
+	<div
+		class="vc-take-body"
+		id="vc-take-panel"
+		role="tabpanel"
+		aria-labelledby={clip ? `vc-tab-${clip.id}` : undefined}
+	>
+		<div class="vc-code-cell">
+		<div class="vc-code" data-code>
+			<ol class="vc-lines" aria-label="The clip's script" data-lines>
+				{
+					lines.map((html, i) => (
+						<li class:list={{ 'is-lit': lit.has(i), 'is-step': starts.has(i) }}>
+							<span class="vc-ln" aria-hidden="true">
+								{i + 1}
+							</span>
+							{starts.has(i) ? (
+								<button
+									type="button"
+									class="vc-src"
+									data-frame={starts.get(i)}
+									tabindex={i === firstStep ? 0 : -1}
+									aria-describedby="vc-take-hint"
+									set:html={html}
+								/>
+							) : (
+								<span class="vc-src" set:html={html} />
+							)}
+						</li>
+					))
+				}
+			</ol>
+		</div>
+		</div>
+
+		<figure class="vc-viewfinder vc-take-view" data-view>
+			<video
+				src={clip ? `${base}/${clip.id}.mp4${v}` : undefined}
+				poster={clip ? `${base}/${clip.id}-poster.png${v}` : undefined}
+				muted
+				playsinline
+				preload="none"
+				controls
+				aria-label={clip?.title ?? 'An example clip'}></video>
+			<span class="vc-osd vc-rec" aria-hidden="true"><i></i>REC</span>
+			<span class="vc-osd vc-ver" data-ver>{clip?.recorder ? `v${clip.recorder}` : ''}</span>
+			<span class="vc-osd vc-commit" data-commit>{clip?.commit ? `main@${clip.commit}` : ''}</span>
+			<span class="vc-osd vc-tc" data-tc>{timecode(0, clip?.fps ?? 60)}</span>
+			<span class="vc-osd vc-standby" aria-hidden="true">STBY</span>
+		</figure>
+	</div>
+
+	<div class="vc-take-controls">
+		<button type="button" class="vc-icon-button" data-play aria-label="Play">
+			<svg class="vc-icon-play" viewBox="0 0 16 16" aria-hidden="true">
+				<path d="M4.5 2.75v10.5L13 8z"></path>
+			</svg>
+			<svg class="vc-icon-pause" viewBox="0 0 16 16" aria-hidden="true">
+				<path d="M5 3v10M11 3v10"></path>
+			</svg>
+		</button>
+		<div class="vc-scrub">
+			<div class="vc-scrub-track" aria-hidden="true" data-ticks>
+				{ticks.map((frame) => <i style={`left: ${at(frame)}%`} />)}
+			</div>
+			<input
+				type="range"
+				min="0"
+				max={clip ? clip.frames - 1 : 0}
+				step="1"
+				value="0"
+				aria-label="Frame"
+				data-scrub
+			/>
+		</div>
+		<span class="vc-frame-count" aria-hidden="true">
+			<span class="vc-num" data-counter>0000</span><span class="vc-of">/{
+				String(clip ? clip.frames : 0).padStart(4, '0')
+			}</span>
+		</span>
+		<button type="button" class="vc-icon-button" data-full aria-label="Enlarge the video">
+			<svg viewBox="0 0 16 16" aria-hidden="true">
+				<path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"></path>
+			</svg>
+		</button>
+	</div>
+</section>
+
+<div class="vc-take-foot not-content">
+	<p id="vc-take-hint" class="vc-take-hint">
+		The script recorded the video. The lit line is the one running; select a line to see its
+		moment.
+	</p>
+	<dl class="vc-take-meta" data-meta>
+		{
+			clip && (
+				<>
+					<div>
+						<dt>Frames</dt>
+						<dd class="vc-num">{clip.frames}</dd>
+					</div>
+					<div>
+						<dt>Captured</dt>
+						<dd class="vc-num">{clip.captured ?? '?'}</dd>
+					</div>
+					<div>
+						<dt>FPS</dt>
+						<dd class="vc-num">{clip.fps}</dd>
+					</div>
+					<div>
+						<dt>Recorded</dt>
+						<dd class="vc-num">{take!.recordedAt.slice(0, 16).replace('T', ' ')} UTC</dd>
+					</div>
+				</>
+			)
+		}
+	</dl>
+</div>
+
+<script type="application/json" id="vc-take-data" set:html={data} />
+
+<script>
+	import {
+		highlight,
+		latestManifest,
+		lineFrames,
+		loadTake,
+		running,
+		timecode,
+		versionQuery,
+		type Take,
+		type TakeClip,
+	} from '../lib/take';
+
+	const root = document.querySelector<HTMLElement>('[data-take]');
+	if (root) start(root);
+
+	function start(root: HTMLElement) {
+		const base = root.dataset.base!;
+		const $ = <T extends Element>(selector: string) => root.querySelector<T>(selector)!;
+		const video = $<HTMLVideoElement>('video');
+		const tabs = $<HTMLElement>('[data-tabs]');
+		const panel = $<HTMLElement>('[role=tabpanel]');
+		const code = $<HTMLElement>('[data-code]');
+		const list = $<HTMLOListElement>('[data-lines]');
+		const scrub = $<HTMLInputElement>('[data-scrub]');
+		const ticks = $<HTMLElement>('[data-ticks]');
+		const play = $<HTMLButtonElement>('[data-play]');
+		const full = $<HTMLButtonElement>('[data-full]');
+		const counter = $<HTMLElement>('[data-counter]');
+		const osd = { tc: $('[data-tc]'), ver: $('[data-ver]'), commit: $('[data-commit]') };
+		const meta = document.querySelector<HTMLElement>('[data-meta]');
+		const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+		let take = JSON.parse(document.getElementById('vc-take-data')?.textContent ?? 'null') as Take | null;
+		let index = 0;
+		let clip: TakeClip | null = take?.clips[0] ?? null;
+		let frame = -1;
+		// The lines the server lit for frame 0, so the first change clears them.
+		let lit = [...list.children].flatMap((li, n) => (li.classList.contains('is-lit') ? [n] : []));
+		// Playing is what the visitor wants unless they asked for stillness, or
+		// paused it. Leaving the screen pauses it without changing that.
+		let wanted = !reduced;
+		let visible = false;
+		// Until the visitor takes over, the take plays each clip in turn; after,
+		// it stays on the one they chose.
+		let touched = false;
+		let dragging = false;
+		let readingUntil = 0;
+		let checked = false;
+
+		// The page's own controls replace the browser's, which stay for a
+		// visitor without scripts.
+		video.controls = false;
+
+		const pct = (f: number) => (clip ? (f / Math.max(1, clip.frames - 1)) * 100 : 0);
+		const frameAt = (seconds: number) => (clip ? Math.floor(seconds * clip.fps + 1e-3) : 0);
+
+		function render(i: number) {
+			if (!take) return;
+			index = i;
+			clip = take.clips[i];
+			const v = versionQuery(take);
+
+			if (tabs.children.length !== take.clips.length) {
+				tabs.innerHTML = take.clips
+					.map(
+						(each) =>
+							`<button type="button" role="tab" class="vc-take-tab" id="vc-tab-${each.id}" aria-controls="vc-take-panel">${each.id}.clip.ts</button>`,
+					)
+					.join('');
+			}
+			[...tabs.children].forEach((tab, j) => {
+				tab.setAttribute('aria-selected', String(j === i));
+				(tab as HTMLElement).tabIndex = j === i ? 0 : -1;
+			});
+			panel.setAttribute('aria-labelledby', `vc-tab-${clip.id}`);
+
+			const starts = lineFrames(clip.steps);
+			const first = Math.min(...starts.keys());
+			list.innerHTML = (clip.source ? highlight(clip.source) : [])
+				.map((html, n) => {
+					const number = `<span class="vc-ln" aria-hidden="true">${n + 1}</span>`;
+					return starts.has(n)
+						? `<li class="is-step">${number}<button type="button" class="vc-src" data-frame="${starts.get(n)}" tabindex="${n === first ? 0 : -1}" aria-describedby="vc-take-hint">${html}</button></li>`
+						: `<li>${number}<span class="vc-src">${html}</span></li>`;
+				})
+				.join('');
+			code.scrollTop = 0;
+
+			ticks.innerHTML = [...new Set(clip.steps.map((step) => step.frame))]
+				.map((f) => `<i style="left: ${pct(f)}%"></i>`)
+				.join('');
+			scrub.max = String(clip.frames - 1);
+			counter.nextElementSibling!.textContent = `/${String(clip.frames).padStart(4, '0')}`;
+			osd.ver.textContent = clip.recorder ? `v${clip.recorder}` : '';
+			osd.commit.textContent = clip.commit ? `main@${clip.commit}` : '';
+			if (meta) {
+				const values = [clip.frames, clip.captured ?? '?', clip.fps];
+				meta.querySelectorAll('dd').forEach((dd, n) => {
+					if (n < values.length) dd.textContent = String(values[n]);
+					else dd.textContent = `${take!.recordedAt.slice(0, 16).replace('T', ' ')} UTC`;
+				});
+			}
+
+			video.poster = `${base}/${clip.id}-poster.png${v}`;
+			video.src = `${base}/${clip.id}.mp4${v}`;
+			video.setAttribute('aria-label', clip.title);
+			frame = -1;
+			lit = [];
+			update(0);
+			root.dataset.state = 'ready';
+		}
+
+		function update(f: number) {
+			if (!clip) return;
+			f = Math.max(0, Math.min(clip.frames - 1, f));
+			if (f === frame) return;
+			frame = f;
+			osd.tc.textContent = timecode(f, clip.fps);
+			counter.textContent = String(f).padStart(4, '0');
+			root.style.setProperty('--vc-played', `${pct(f)}%`);
+			if (!dragging) scrub.value = String(f);
+			const next = running(clip.steps, f);
+			if (next.join() !== lit.join()) light(next);
+		}
+
+		function light(next: number[]) {
+			for (const n of lit) list.children[n]?.classList.remove('is-lit');
+			for (const n of next) list.children[n]?.classList.add('is-lit');
+			lit = next;
+			const line = list.children[next[0]] as HTMLElement | undefined;
+			if (!line || Date.now() < readingUntil) return;
+			// Scroll the script, never the page: the line is kept in view inside
+			// its own panel, a third of the way down.
+			const top = line.offsetTop;
+			const view = code.scrollTop;
+			if (top >= view + 24 && top + line.offsetHeight <= view + code.clientHeight - 24) return;
+			code.scrollTo({ top: top - code.clientHeight / 3, behavior: reduced ? 'auto' : 'smooth' });
+		}
+
+		function seek(f: number) {
+			if (!clip) return;
+			touched = true;
+			video.currentTime = (f + 0.5) / clip.fps;
+			update(f);
+			scrub.setAttribute('aria-valuetext', `${timecode(f, clip.fps)}, frame ${f} of ${clip.frames}`);
+		}
+
+		function attempt() {
+			if (checked && wanted && visible && video.paused) video.play().catch(() => {});
+		}
+
+		// Frames as they are shown where the browser can say so, and from the
+		// clock where it cannot. A new generation starts with every new video,
+		// so an old one's callbacks stop instead of piling up.
+		let generation = 0;
+		const watch = (g: number) =>
+			video.requestVideoFrameCallback((_, shown) => {
+				if (g !== generation || !clip) return;
+				update(Math.round(shown.mediaTime * clip.fps));
+				watch(g);
+			});
+		if ('requestVideoFrameCallback' in video) {
+			video.addEventListener('loadeddata', () => watch(++generation));
+		} else {
+			const tick = () => {
+				if (!video.paused) update(frameAt(video.currentTime));
+				requestAnimationFrame(tick);
+			};
+			requestAnimationFrame(tick);
+		}
+		video.addEventListener('seeked', () => update(frameAt(video.currentTime)));
+
+		video.addEventListener('play', () => {
+			root.dataset.playing = '';
+			play.setAttribute('aria-label', 'Pause');
+		});
+		video.addEventListener('pause', () => {
+			delete root.dataset.playing;
+			play.setAttribute('aria-label', 'Play');
+		});
+		video.addEventListener('ended', () => {
+			if (!touched && take && take.clips.length > 1) {
+				render((index + 1) % take.clips.length);
+			} else {
+				video.currentTime = 0;
+			}
+			attempt();
+		});
+
+		play.addEventListener('click', () => {
+			touched = true;
+			wanted = video.paused;
+			if (wanted) video.play().catch(() => {});
+			else video.pause();
+		});
+		video.addEventListener('click', () => play.click());
+
+		full.addEventListener('click', () => {
+			const view = video.closest('figure')!;
+			if (document.fullscreenElement) void document.exitFullscreen();
+			else if (view.requestFullscreen) void view.requestFullscreen();
+			else (video as HTMLVideoElement & { webkitEnterFullscreen?: () => void }).webkitEnterFullscreen?.();
+		});
+
+		tabs.addEventListener('click', (event) => {
+			const tab = (event.target as Element).closest('[role=tab]');
+			const i = tab ? [...tabs.children].indexOf(tab) : -1;
+			if (i < 0 || i === index) return;
+			touched = true;
+			render(i);
+			attempt();
+		});
+		tabs.addEventListener('keydown', (event) => {
+			const count = tabs.children.length;
+			const moves: Record<string, number> = { ArrowRight: index + 1, ArrowLeft: index - 1, Home: 0, End: count - 1 };
+			if (!(event.key in moves)) return;
+			event.preventDefault();
+			touched = true;
+			render((moves[event.key] + count) % count);
+			(tabs.children[index] as HTMLElement).focus();
+			attempt();
+		});
+
+		list.addEventListener('click', (event) => {
+			const line = (event.target as Element).closest<HTMLElement>('[data-frame]');
+			if (line) seek(Number(line.dataset.frame));
+		});
+		list.addEventListener('keydown', (event) => {
+			if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+			const steps = [...list.querySelectorAll<HTMLElement>('[data-frame]')];
+			const here = steps.indexOf(document.activeElement as HTMLElement);
+			const next = steps[here + (event.key === 'ArrowDown' ? 1 : -1)];
+			if (!next) return;
+			event.preventDefault();
+			steps.forEach((step) => (step.tabIndex = step === next ? 0 : -1));
+			next.focus();
+		});
+		// A visitor reading the script keeps the place they scrolled to.
+		for (const type of ['wheel', 'touchmove']) {
+			code.addEventListener(type, () => (readingUntil = Date.now() + 4000), { passive: true });
+		}
+
+		scrub.addEventListener('pointerdown', () => (dragging = true));
+		addEventListener('pointerup', () => (dragging = false));
+		scrub.addEventListener('input', () => seek(Number(scrub.value)));
+
+		new IntersectionObserver(
+			([entry]) => {
+				visible = entry.isIntersecting;
+				if (visible) attempt();
+				else video.pause();
+			},
+			{ threshold: 0.25 },
+		).observe(video);
+
+		// The take the page was built with may not be the newest. Ask once, and
+		// load a video only when the answer is in, so it is never fetched twice.
+		latestManifest(base)
+			.then(async (manifest) => {
+				if (!take || manifest.commit !== take.commit || manifest.recordedAt !== take.recordedAt) {
+					const keep = clip?.id;
+					take = await loadTake(base, manifest);
+					render(Math.max(0, take.clips.findIndex((each) => each.id === keep)));
+				}
+			})
+			.catch(() => {
+				if (!take) root.dataset.state = 'nosignal';
+			})
+			.finally(() => {
+				checked = true;
+				attempt();
+			});
+	}
+</script>
