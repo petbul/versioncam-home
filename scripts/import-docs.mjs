@@ -96,6 +96,7 @@ const PLACES = {
   Authoring: ["start", "authoring", 4],
   Commands: ["reference", "commands", 1],
   "What a recording leaves behind": ["reference", "recordings", 3],
+  Glossary: ["reference", "glossary", 4],
   "How it works": ["how-it-works", "overview", 1, "Overview"],
   Speed: ["how-it-works", "speed", 2],
   Determinism: ["how-it-works", "determinism", 3],
