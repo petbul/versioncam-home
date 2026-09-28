@@ -23,3 +23,6 @@ pnpm-debug.log*
 
 # Generated from the versioncam package by scripts/import-docs.mjs.
 src/content/docs/
+
+# Design-review archives (impeccable); local notes, not part of the site.
+.impeccable/

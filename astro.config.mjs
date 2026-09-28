@@ -43,7 +43,7 @@ export default defineConfig({
         "Record demo clips of a real web app: scripted, deterministic, regenerated on deploy.",
       logo: {
         src: "./src/assets/lockup-dark-bg.svg",
-        alt: "Versioncam — version.cam",
+        alt: "Versioncam",
         replacesTitle: true,
       },
       favicon: "/favicon.svg",
@@ -56,7 +56,7 @@ export default defineConfig({
         { tag: "meta", attrs: { property: "og:image:height", content: "630" } },
         {
           tag: "meta",
-          attrs: { property: "og:image:alt", content: "version.cam — Your app, recorded from main." },
+          attrs: { property: "og:image:alt", content: "version.cam: Your app, recorded from main." },
         },
         { tag: "meta", attrs: { name: "twitter:card", content: "summary_large_image" } },
         { tag: "meta", attrs: { name: "twitter:image", content: OG } },
@@ -82,10 +82,15 @@ export default defineConfig({
           borderColor: "#2A2E35",
           borderRadius: "0",
           codeFontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace",
+          codeFontSize: "0.875rem",
+          codeLineHeight: "1.6",
           frames: {
             editorActiveTabIndicatorTopColor: "#FFFFFF",
             terminalTitlebarBackground: "#000000",
             terminalTitlebarBorderBottomColor: "#2A2E35",
+            // The terminal is named in the on-screen voice (site.css), not
+            // drawn as a macOS window.
+            terminalTitlebarDotsOpacity: "0",
             frameBoxShadowCssValue: "none",
           },
         },
@@ -93,25 +98,29 @@ export default defineConfig({
       social: [
         {
           icon: "github",
-          label: "Issues",
+          label: "GitHub",
           href: "https://github.com/petbul/versioncam-home",
         },
       ],
       customCss: ["./src/styles/site.css"],
+      // Groups stay shut unless they hold the page being read (Starlight opens
+      // that one itself): a handful of choices instead of fifteen links.
       sidebar: [
-        { label: "Start", items: [{ autogenerate: { directory: "start" } }] },
+        { label: "Start", collapsed: true, items: [{ autogenerate: { directory: "start" } }] },
         {
           label: "Reference",
+          collapsed: true,
           items: [{ autogenerate: { directory: "reference" } }],
         },
         {
           label: "How it works",
+          collapsed: true,
           items: [{ autogenerate: { directory: "how-it-works" } }],
         },
         ...(more
           ? [{ label: "More", items: [{ autogenerate: { directory: "more" } }] }]
           : []),
-        { label: "About", items: [{ autogenerate: { directory: "about" } }] },
+        { label: "About", collapsed: true, items: [{ autogenerate: { directory: "about" } }] },
       ],
     }),
   ],

@@ -104,25 +104,137 @@ const PLACES = {
   Licence: ["about", "licence", 3],
 };
 
-function page(dir, slug, title, order, body, source, label) {
+// Anchors as Astro writes them (github-slugger), close enough for the
+// headings a README uses: lower case, punctuation gone, spaces to hyphens.
+function anchor(title) {
+  return title
+    .toLowerCase()
+    .trim()
+    .replace(/[^\p{L}\p{N}\s-]/gu, "")
+    .replace(/\s/g, "-");
+}
+
+/** Lines outside code fences, with a flag for whether each is fenced. */
+function* unfenced(markdown) {
+  let fenced = false;
+  for (const line of markdown.split("\n")) {
+    if (/^\s*(```|~~~)/.test(line)) {
+      fenced = !fenced;
+      yield [line, true];
+    } else yield [line, fenced];
+  }
+}
+
+/** The page's first sentence as plain text, for its meta description. */
+function describe(body) {
+  for (const block of body.split(/\n\s*\n/)) {
+    const text = block.trim();
+    if (!text || /^(#|```|~~~|<|[-*|>] |\d+\. )/.test(text)) continue;
+    const plain = text
+      .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")
+      .replace(/[`*_]/g, "")
+      .replace(/\s+/g, " ");
+    const sentence = plain.match(/^.+?[.!?](?=\s|$)/)?.[0] ?? plain;
+    return sentence.length > 160 ? `${sentence.slice(0, 157)}...` : sentence;
+  }
+  return undefined;
+}
+
+// Every section and sub-section a page will hold, by title, so a README's
+// italic cross-reference (*In CI*, *Authoring*) can become a link on the
+// site while staying plain text on npm.
+const targets = new Map();
+function register(dir, slug, title, body) {
+  targets.set(title, `/${dir}/${slug}/`);
+  for (const [line, fenced] of unfenced(body)) {
+    const heading = !fenced && line.match(/^#{2,3} (.+)$/);
+    if (heading) targets.set(heading[1].trim(), `/${dir}/${slug}/#${anchor(heading[1])}`);
+  }
+}
+
+/** `*Title*` becomes a link wherever Title names a section elsewhere. */
+function link(body, self) {
+  const out = [];
+  for (const [line, fenced] of unfenced(body)) {
+    if (fenced) {
+      out.push(line);
+      continue;
+    }
+    // Leave inline code alone: only the text between backtick spans changes.
+    out.push(
+      line
+        .split(/(`[^`]*`)/)
+        .map((part, i) =>
+          i % 2
+            ? part
+            : part.replace(/(?<![*\w])\*([^*\n]+)\*(?![*\w])/g, (whole, title) => {
+                const url = targets.get(title);
+                return url && url !== self ? `[${title}](${url})` : whole;
+              }),
+        )
+        .join(""),
+    );
+  }
+  return out.join("\n");
+}
+
+/**
+ * Code blocks that are a message to the skill rather than a shell command
+ * are labelled as such, so nobody pastes `/versioncam "..."` into a terminal.
+ */
+function label(body) {
+  return body.replace(/^```[a-z]*\n(\/versioncam\b)/gm, '```text title="Claude Code"\n$1');
+}
+
+const pages = [];
+function page(dir, slug, title, order, body, source, sidebarLabel) {
+  register(dir, slug, title, body);
+  pages.push({ dir, slug, title, order, body, source, sidebarLabel });
+}
+
+/** A heading with nothing under it (a changelog's empty Unreleased) is dropped. */
+function withoutEmptySections(body) {
+  const lines = body.split("\n");
+  return lines
+    .filter((line, i) => {
+      if (!/^## /.test(line)) return true;
+      const next = lines.slice(i + 1).find((l) => l.trim() !== "");
+      return next !== undefined && !/^## /.test(next);
+    })
+    .join("\n");
+}
+
+function write({ dir, slug, title, order, body, source, sidebarLabel }) {
+  const self = `/${dir}/${slug}/`;
+  const text = label(link(withoutEmptySections(body), self)).trim();
+  let sections = 0;
+  for (const [line, fenced] of unfenced(text)) {
+    if (!fenced && /^#{2,3} /.test(line)) sections += 1;
+  }
+  const description = describe(text);
   const front = [
     "---",
     `title: ${JSON.stringify(title)}`,
+    ...(description ? [`description: ${JSON.stringify(description)}`] : []),
+    // A contents column listing one heading is a column of nothing.
+    ...(sections < 2 ? ["tableOfContents: false"] : []),
     "sidebar:",
     `  order: ${order}`,
-    ...(label ? [`  label: ${JSON.stringify(label)}`] : []),
+    ...(sidebarLabel ? [`  label: ${JSON.stringify(sidebarLabel)}`] : []),
     "---",
     "",
   ].join("\n");
-  const note = `\n\n---\n\n<small>From ${source}.</small>\n`;
   mkdirSync(join(DOCS, dir), { recursive: true });
-  writeFileSync(join(DOCS, dir, `${slug}.md`), `${front}${body.trim()}${note}`);
+  writeFileSync(join(DOCS, dir, `${slug}.md`), `${front}${source}\n\n${text}\n`);
 }
 
 const pkg = packageDir();
 const { version } = JSON.parse(readFileSync(join(pkg, "package.json"), "utf8"));
 const read = (file) => readFileSync(join(pkg, file), "utf8");
-const from = (file) => `\`${file}\` in versioncam ${version}, as published on npm`;
+// The provenance stamp under each page's title: the file, and the release it
+// came from, amber on the site because it is read from the tarball itself.
+const from = (file) =>
+  `<p class="vc-stamp">Source <code>${file}</code> · versioncam <span class="vc-num">${version}</span> from npm</p>`;
 
 rmSync(DOCS, { recursive: true, force: true });
 mkdirSync(DOCS, { recursive: true });
@@ -144,6 +256,34 @@ for (const part of parts) {
 page("reference", "dsl", "The clip DSL", 2, withoutTitle(read("dsl.md")), from("dsl.md"));
 page("start", "skill", "The skill", 5, withoutTitle(read("plugin/README.md")), from("plugin/README.md"));
 page("about", "changelog", "Changelog", 1, withoutTitle(read("CHANGELOG.md")), from("CHANGELOG.md"));
+
+// Links need every page registered first, so pages are written only now.
+for (const each of pages) write(each);
+
+// A missing page, in the viewfinder's words: no signal at this address.
+writeFileSync(
+  join(DOCS, "404.md"),
+  [
+    "---",
+    "title: No signal",
+    "template: splash",
+    "editUrl: false",
+    "pagefind: false",
+    "hero:",
+    "  title: Nothing was recorded here.",
+    "  tagline: This address has no page. The clips and the docs are one step back.",
+    "  image:",
+    `    html: '<div class="vc-nosignal" aria-hidden="true"><span class="vc-nosignal-mode">STBY</span><span class="vc-nosignal-text">NO SIGNAL</span><span class="vc-nosignal-tc">--:--:--:--</span></div>'`,
+    "  actions:",
+    "    - text: version.cam",
+    "      link: /",
+    "    - text: Read the docs",
+    "      link: /start/install/",
+    "      variant: minimal",
+    "---",
+    "",
+  ].join("\n"),
+);
 
 // The front page: the README's own lede and install commands, and the example
 // app's clips as this repository's CI last rendered them.

@@ -83,29 +83,171 @@
   --sl-color-purple-high: var(--vc-white);
 }
 
-/* Headings speak in the machine's voice, on its grid. */
-.sl-markdown-content :is(h1, h2),
-h1#_top {
+/* ---- Browser surfaces ----------------------------------------------------
+   The parts nobody draws still belong to the viewfinder: selection, caret,
+   scrollbars and focus take the palette instead of the browser's blue. */
+
+::selection {
+  background: var(--vc-white);
+  color: var(--vc-black);
+}
+:root {
+  caret-color: var(--vc-white);
+  scrollbar-color: var(--vc-line) var(--vc-black);
+}
+:focus-visible {
+  outline: 2px solid var(--vc-white);
+  outline-offset: 2px;
+}
+.sl-skip-link:focus {
+  background: var(--vc-white);
+  color: var(--vc-black);
   font-family: var(--vc-font-machine);
-  font-weight: 400;
-  letter-spacing: 0;
-  color: var(--vc-white);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border-radius: 0;
 }
-h1#_top {
-  font-size: 33px;
-  line-height: 1.33;
+
+/* Pixels have no radius. */
+.sl-link-button,
+button[data-open-modal],
+.pagination-links a,
+.sidebar-content a,
+mobile-starlight-toc summary,
+.expressive-code .copy button,
+.starlight-aside,
+kbd {
+  border-radius: 0 !important;
 }
-.sl-markdown-content h2 {
-  font-size: 22px;
-  line-height: 1.5;
+
+/* ---- Reading: the docs ---------------------------------------------------
+   Prose holds about seventy characters to the line (52ch of Inter); code,
+   tables and figures take the whole column, so a command never clips while
+   the paragraph beside it stays comfortable. Light type on black gets a
+   little more leading. */
+
+:root {
+  --sl-content-width: 50rem;
 }
-.sl-markdown-content h3 {
+.sl-markdown-content {
+  line-height: 1.65;
+}
+.sl-markdown-content
+  > :is(p, ul, ol, blockquote, dl, .sl-heading-wrapper, .starlight-aside) {
+  max-inline-size: 52ch;
+}
+.sl-markdown-content p {
+  text-wrap: pretty;
+}
+.sl-markdown-content :is(strong, b) {
+  /* Inter ships at 400 and 500; anything heavier would be synthesised. */
   font-weight: 500;
   color: var(--vc-white);
 }
 .sl-markdown-content a {
   text-underline-offset: 0.2em;
+  text-decoration-thickness: 1px;
 }
+.sl-markdown-content a:hover {
+  text-decoration-thickness: 2px;
+}
+
+/* Inline code: a size step below the prose, never broken at its hyphens on a
+   screen wide enough to keep a flag whole. */
+.sl-markdown-content :not(pre) > code {
+  font-size: 0.875em;
+  padding: 0.1em 0.35em;
+  border-radius: 0;
+}
+@media (min-width: 50rem) {
+  .sl-markdown-content :not(pre) > code {
+    white-space: nowrap;
+  }
+}
+
+/* ---- Headings: the machine's voice, on its 11px grid ---------------------
+   Page title 33, section 22 (Departure Mono); sub-section 18 (Inter 500), so
+   rank and size always agree. Starlight sizes the heading wrapper, and the
+   anchor link's spacing, from its own scale; the wrappers take ours. */
+
+h1#_top,
+.sl-markdown-content h2 {
+  font-family: var(--vc-font-machine);
+  font-weight: 400;
+  letter-spacing: 0;
+  color: var(--vc-white);
+  text-wrap: balance;
+}
+h1#_top {
+  font-size: 33px;
+  line-height: 44px;
+}
+.sl-markdown-content h2,
+.sl-markdown-content .sl-heading-wrapper.level-h2 {
+  font-size: 22px;
+  line-height: 33px;
+}
+.sl-markdown-content h3,
+.sl-markdown-content .sl-heading-wrapper.level-h3 {
+  font-family: var(--vc-font-human);
+  font-size: 18px;
+  line-height: 1.4;
+}
+.sl-markdown-content h3 {
+  font-weight: 500;
+  color: var(--vc-white);
+}
+.sl-markdown-content h3 code {
+  font-size: 0.9em;
+  background: none;
+  padding: 0;
+  color: inherit;
+}
+
+/* The section link: a `#`, the way a developer already reads it, set in the
+   machine's face with room before it — Starlight's chain icon was drawn
+   against the last letter. Touch screens, where it cannot hide until
+   hovered, leave it out. */
+.sl-markdown-content .sl-heading-wrapper {
+  --sl-anchor-icon-size: 0.64em;
+  --sl-anchor-icon-gap: 0.45em;
+}
+.sl-markdown-content .sl-anchor-icon > svg {
+  display: none;
+}
+.sl-markdown-content .sl-anchor-icon::before {
+  content: "#";
+  font-family: var(--vc-font-machine);
+  color: var(--vc-dim);
+}
+.sl-markdown-content .level-h3 .sl-anchor-icon::before {
+  font-family: var(--vc-font-human);
+}
+.sl-markdown-content .sl-anchor-link:is(:hover, :focus-visible) .sl-anchor-icon::before {
+  color: var(--vc-white);
+}
+@media (hover: none) {
+  .sl-markdown-content .sl-anchor-link {
+    display: none;
+  }
+}
+
+/* ---- Code frames ---------------------------------------------------------
+   A terminal says so in the on-screen voice instead of wearing macOS window
+   dots; the dots themselves are hidden in astro.config.mjs. */
+.expressive-code .frame.is-terminal .header .title:empty::before {
+  content: "Terminal";
+}
+.expressive-code .frame .header .title {
+  font-family: var(--vc-font-machine);
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--vc-dim);
+}
+
+/* ---- Chrome: sidebar, contents, pagination -------------------------------- */
 
 /* The sidebar's group labels, as an on-screen display would set them. */
 .sidebar-content .group-label .large {
@@ -116,10 +258,42 @@ h1#_top {
   text-transform: uppercase;
   color: var(--vc-dim);
 }
+.sidebar-content a[aria-current="page"] {
+  font-weight: 500;
+}
+#starlight__on-this-page {
+  font-family: var(--vc-font-machine);
+  font-size: 11px;
+  line-height: 22px;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--vc-dim);
+}
+.pagination-links a {
+  border-color: var(--vc-line);
+}
+.pagination-links a:hover {
+  border-color: var(--vc-white);
+}
 
-/* Buttons are square: pixels have no radius. */
+/* The page's provenance, stamped under its title: which file of which
+   release, the version amber because it is read from the tarball itself. */
+.vc-stamp {
+  font-family: var(--vc-font-machine);
+  font-size: 11px;
+  line-height: 22px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--vc-dim);
+  margin-block-end: 1.5rem;
+}
+.vc-stamp .vc-num {
+  color: var(--vc-amber);
+}
+
+/* Buttons speak on the grid: 11px capitals in the docs, 22px on the hero. */
 .sl-link-button {
-  border-radius: 0;
   font-family: var(--vc-font-machine);
   font-weight: 400;
 }
@@ -277,4 +451,75 @@ h1#_top {
   font-size: 11px;
   letter-spacing: 0.04em;
   color: var(--vc-dim);
+}
+
+.vc-stamp code {
+  text-transform: none;
+  font-size: inherit;
+  letter-spacing: 0;
+  background: none;
+  padding: 0;
+  color: var(--vc-white);
+}
+
+/* ---- No signal: the 404 ------------------------------------------------- */
+.vc-nosignal {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: min(100%, 44rem);
+  aspect-ratio: 16 / 10;
+  border: 1px solid var(--vc-line);
+  font-family: var(--vc-font-machine);
+  color: var(--vc-dim);
+  background:
+    linear-gradient(var(--vc-white), var(--vc-white)) top 8px left 8px / 14px 2px,
+    linear-gradient(var(--vc-white), var(--vc-white)) top 8px left 8px / 2px 14px,
+    linear-gradient(var(--vc-white), var(--vc-white)) top 8px right 8px / 14px 2px,
+    linear-gradient(var(--vc-white), var(--vc-white)) top 8px right 8px / 2px 14px,
+    linear-gradient(var(--vc-white), var(--vc-white)) bottom 8px left 8px / 14px 2px,
+    linear-gradient(var(--vc-white), var(--vc-white)) bottom 8px left 8px / 2px 14px,
+    linear-gradient(var(--vc-white), var(--vc-white)) bottom 8px right 8px / 14px 2px,
+    linear-gradient(var(--vc-white), var(--vc-white)) bottom 8px right 8px / 2px 14px,
+    var(--vc-black);
+  background-repeat: no-repeat;
+}
+.vc-nosignal-text {
+  font-size: 33px;
+  line-height: 44px;
+  color: var(--vc-white);
+}
+.vc-nosignal-mode,
+.vc-nosignal-tc {
+  position: absolute;
+  font-size: 11px;
+  line-height: 11px;
+  letter-spacing: 0.04em;
+}
+.vc-nosignal-mode {
+  top: 20px;
+  left: 20px;
+  color: var(--vc-white);
+}
+.vc-nosignal-tc {
+  bottom: 20px;
+  right: 20px;
+}
+
+/* The section link is a mark, not a word: no underline. */
+.sl-markdown-content .sl-anchor-link {
+  text-decoration: none;
+}
+
+/* The mobile menu toggle is square like everything else. */
+.sl-menu-button {
+  border-radius: 0 !important;
+}
+
+/* Where the copy button cannot hide until hovered, the code can scroll out
+   from under it rather than end beneath it. */
+@media (hover: none) {
+  .expressive-code pre > code {
+    padding-inline-end: 3.5rem;
+  }
 }
