@@ -10,7 +10,7 @@ hero:
       link: /start/install/
       icon: right-arrow
     - text: Report a bug
-      link: https://github.com/versioncam/versioncam/issues
+      link: https://github.com/petbul/versioncam-home/issues
       icon: external
       variant: minimal
 ---

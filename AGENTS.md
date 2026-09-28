@@ -1,4 +1,4 @@
-# Notes for agents in versioncam/versioncam
+# Notes for agents in Versioncam's public home
 
 This repository is **public**. The Versioncam engine's source is not, and
 nothing from it belongs here.

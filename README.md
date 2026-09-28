@@ -7,7 +7,7 @@ the clip — instead of quietly producing a video that is wrong.
 
 - **Website and docs:** [version.cam](https://version.cam)
 - **Install:** `npm i -D versioncam` — [the package on npm](https://www.npmjs.com/package/versioncam)
-- **A bug, a question, an app it cannot record:** [issues](https://github.com/versioncam/versioncam/issues)
+- **A bug, a question, an app it cannot record:** [issues](https://github.com/petbul/versioncam-home/issues)
 
 ## What this repository is
 
